@@ -1,0 +1,47 @@
+{
+  "name": "musicbot-matrix-subsonic",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Encrypted Element Call music bot for OpenSubsonic-compatible media servers",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18.0 <23"
+  },
+  "scripts": {
+    "postinstall": "patch-package",
+    "patch:check": "patch-package --error-on-fail",
+    "dev": "tsx src/main.ts",
+    "start": "node dist/main.js",
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:integration": "vitest run --config vitest.integration.config.ts",
+    "doctor": "tsx src/main.ts doctor",
+    "verify:device": "tsx src/main.ts verify:device",
+    "rtc:vertical-slice": "tsx src/main.ts rtc:vertical-slice"
+  },
+  "dependencies": {
+    "@livekit/rtc-node": "1.2.1",
+    "dotenv": "18.0.9",
+    "indexeddbshim": "19.0.7",
+    "matrix-js-sdk": "45.0.0",
+    "pino": "10.4.0",
+    "proper-lockfile": "4.1.2",
+    "undici": "7.30.2",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "22.18.13",
+    "@types/proper-lockfile": "4.1.4",
+    "eslint": "10.14.0",
+    "globals": "17.14.0",
+    "patch-package": "8.0.1",
+    "tsx": "4.23.15",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.72.1",
+    "vitest": "5.1.0"
+  }
+}

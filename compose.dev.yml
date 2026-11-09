@@ -1,0 +1,13 @@
+services:
+  development:
+    build:
+      context: .
+      target: development
+    image: musicbot-matrix-subsonic:development
+    environment:
+      DATA_DIR: /app/data
+    network_mode: host
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: ["npm", "run", "dev"]

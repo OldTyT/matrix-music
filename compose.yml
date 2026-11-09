@@ -1,0 +1,15 @@
+services:
+  musicbot:
+    build:
+      context: .
+      target: runtime
+    image: musicbot-matrix-subsonic:local
+    env_file: .env
+    environment:
+      DATA_DIR: /var/lib/musicbot
+    network_mode: host
+    init: true
+    restart: unless-stopped
+    stop_grace_period: 45s
+    volumes:
+      - ./data:/var/lib/musicbot

@@ -1,0 +1,205 @@
+diff --git a/node_modules/@livekit/rtc-node/dist/e2ee.cjs b/node_modules/@livekit/rtc-node/dist/e2ee.cjs
+index fb5085c..1f90e47 100644
+--- a/node_modules/@livekit/rtc-node/dist/e2ee.cjs
++++ b/node_modules/@livekit/rtc-node/dist/e2ee.cjs
+@@ -103,14 +103,15 @@ class KeyProvider {
+     });
+     return res.message.value.newKey;
+   }
+-  setKey(participantIdentity, keyIndex) {
++  setKey(participantIdentity, keyIndex, rawKey) {
+     const req = new import_rtc_ffi_bindings.E2eeRequest({
+       roomHandle: this.roomHandle,
+       message: {
+         case: "setKey",
+         value: new import_rtc_ffi_bindings.SetKeyRequest({
+           keyIndex,
+-          participantIdentity
++          participantIdentity,
++          key: rawKey
+         })
+       }
+     });
+@@ -161,10 +162,11 @@ class KeyProvider {
+   }
+ }
+ class FrameCryptor {
+-  constructor(roomHandle, participantIdentity, keyIndex, enabled) {
++  constructor(roomHandle, participantIdentity, trackSid, keyIndex, enabled) {
+     this.roomHandle = BigInt(0);
+     this.roomHandle = roomHandle;
+     this.participantIdentity = participantIdentity;
++    this.trackSid = trackSid;
+     this.keyIndex = keyIndex;
+     this.enabled = enabled;
+   }
+@@ -176,6 +178,7 @@ class FrameCryptor {
+         case: "cryptorSetEnabled",
+         value: new import_rtc_ffi_bindings.FrameCryptorSetEnabledRequest({
+           participantIdentity: this.participantIdentity,
++          trackSid: this.trackSid,
+           enabled: this.enabled
+         })
+       }
+@@ -195,6 +198,7 @@ class FrameCryptor {
+         case: "cryptorSetKeyIndex",
+         value: new import_rtc_ffi_bindings.FrameCryptorSetKeyIndexRequest({
+           participantIdentity: this.participantIdentity,
++          trackSid: this.trackSid,
+           keyIndex: this.keyIndex
+         })
+       }
+@@ -217,6 +221,9 @@ class E2EEManager {
+     this.options = options;
+     this.keyProvider = new KeyProvider(roomHandle, options.keyProviderOptions);
+   }
++  getKeyProvider() {
++    return this.keyProvider;
++  }
+   setEnabled(enabled) {
+     this.enabled = enabled;
+     const req = new import_rtc_ffi_bindings.E2eeRequest({
+@@ -253,6 +260,7 @@ class E2EEManager {
+       (cryptor) => new FrameCryptor(
+         this.roomHandle,
+         cryptor.participantIdentity,
++        cryptor.trackSid,
+         cryptor.keyIndex,
+         cryptor.enabled
+       )
+diff --git a/node_modules/@livekit/rtc-node/dist/e2ee.d.cts b/node_modules/@livekit/rtc-node/dist/e2ee.d.cts
+index 85a328b..0f83032 100644
+--- a/node_modules/@livekit/rtc-node/dist/e2ee.d.cts
++++ b/node_modules/@livekit/rtc-node/dist/e2ee.d.cts
+@@ -22,16 +22,17 @@ declare class KeyProvider {
+     setSharedKey(sharedKey: Uint8Array, keyIndex: number): void;
+     exportSharedKey(keyIndex: number): Uint8Array;
+     ratchetSharedKey(keyIndex: number): Uint8Array;
+-    setKey(participantIdentity: string, keyIndex: number): void;
++    setKey(participantIdentity: string, keyIndex: number, rawKey: Uint8Array): void;
+     exportKey(participantIdentity: string, keyIndex: number): Uint8Array;
+     ratchetKey(participantIdentity: string, keyIndex: number): Uint8Array;
+ }
+ declare class FrameCryptor {
+     private roomHandle;
+     participantIdentity: string;
++    trackSid: string;
+     keyIndex: number;
+     enabled: boolean;
+-    constructor(roomHandle: bigint, participantIdentity: string, keyIndex: number, enabled: boolean);
++    constructor(roomHandle: bigint, participantIdentity: string, trackSid: string, keyIndex: number, enabled: boolean);
+     setEnabled(enabled: boolean): void;
+     setKeyIndex(keyIndex: number): void;
+ }
+@@ -41,6 +42,7 @@ declare class E2EEManager {
+     private keyProvider;
+     enabled: boolean;
+     constructor(roomHandle: bigint, opts?: E2EEOptions);
++    getKeyProvider(): KeyProvider;
+     setEnabled(enabled: boolean): void;
+     frameCryptors(): FrameCryptor[];
+ }
+diff --git a/node_modules/@livekit/rtc-node/dist/e2ee.d.ts b/node_modules/@livekit/rtc-node/dist/e2ee.d.ts
+index e585495..ad5a408 100644
+--- a/node_modules/@livekit/rtc-node/dist/e2ee.d.ts
++++ b/node_modules/@livekit/rtc-node/dist/e2ee.d.ts
+@@ -21,16 +21,17 @@ export declare class KeyProvider {
+     setSharedKey(sharedKey: Uint8Array, keyIndex: number): void;
+     exportSharedKey(keyIndex: number): Uint8Array;
+     ratchetSharedKey(keyIndex: number): Uint8Array;
+-    setKey(participantIdentity: string, keyIndex: number): void;
++    setKey(participantIdentity: string, keyIndex: number, rawKey: Uint8Array): void;
+     exportKey(participantIdentity: string, keyIndex: number): Uint8Array;
+     ratchetKey(participantIdentity: string, keyIndex: number): Uint8Array;
+ }
+ export declare class FrameCryptor {
+     private roomHandle;
+     participantIdentity: string;
++    trackSid: string;
+     keyIndex: number;
+     enabled: boolean;
+-    constructor(roomHandle: bigint, participantIdentity: string, keyIndex: number, enabled: boolean);
++    constructor(roomHandle: bigint, participantIdentity: string, trackSid: string, keyIndex: number, enabled: boolean);
+     setEnabled(enabled: boolean): void;
+     setKeyIndex(keyIndex: number): void;
+ }
+@@ -40,6 +41,7 @@ export declare class E2EEManager {
+     private keyProvider;
+     enabled: boolean;
+     constructor(roomHandle: bigint, opts?: E2EEOptions);
++    getKeyProvider(): KeyProvider;
+     setEnabled(enabled: boolean): void;
+     frameCryptors(): FrameCryptor[];
+ }
+diff --git a/node_modules/@livekit/rtc-node/src/e2ee.ts b/node_modules/@livekit/rtc-node/src/e2ee.ts
+index 6d60d4a..6beec25 100644
+--- a/node_modules/@livekit/rtc-node/src/e2ee.ts
++++ b/node_modules/@livekit/rtc-node/src/e2ee.ts
+@@ -130,7 +130,7 @@ export class KeyProvider {
+     return (res.message.value as RatchetSharedKeyResponse).newKey!;
+   }
+ 
+-  setKey(participantIdentity: string, keyIndex: number) {
++  setKey(participantIdentity: string, keyIndex: number, rawKey: Uint8Array) {
+     const req = new E2eeRequest({
+       roomHandle: this.roomHandle,
+       message: {
+@@ -138,6 +138,7 @@ export class KeyProvider {
+         value: new SetKeyRequest({
+           keyIndex: keyIndex,
+           participantIdentity: participantIdentity,
++          key: rawKey,
+         }),
+       },
+     });
+@@ -198,12 +199,14 @@ export class KeyProvider {
+ export class FrameCryptor {
+   private roomHandle = BigInt(0);
+   participantIdentity: string;
++  trackSid: string;
+   keyIndex: number;
+   enabled: boolean;
+ 
+-  constructor(roomHandle: bigint, participantIdentity: string, keyIndex: number, enabled: boolean) {
++  constructor(roomHandle: bigint, participantIdentity: string, trackSid: string, keyIndex: number, enabled: boolean) {
+     this.roomHandle = roomHandle;
+     this.participantIdentity = participantIdentity;
++    this.trackSid = trackSid;
+     this.keyIndex = keyIndex;
+     this.enabled = enabled;
+   }
+@@ -216,6 +219,7 @@ export class FrameCryptor {
+         case: 'cryptorSetEnabled',
+         value: new FrameCryptorSetEnabledRequest({
+           participantIdentity: this.participantIdentity,
++          trackSid: this.trackSid,
+           enabled: this.enabled,
+         }),
+       },
+@@ -237,6 +241,7 @@ export class FrameCryptor {
+         case: 'cryptorSetKeyIndex',
+         value: new FrameCryptorSetKeyIndexRequest({
+           participantIdentity: this.participantIdentity,
++          trackSid: this.trackSid,
+           keyIndex: this.keyIndex,
+         }),
+       },
+@@ -269,6 +274,10 @@ export class E2EEManager {
+     this.keyProvider = new KeyProvider(roomHandle, options.keyProviderOptions);
+   }
+ 
++  getKeyProvider(): KeyProvider {
++    return this.keyProvider;
++  }
++
+   setEnabled(enabled: boolean) {
+     this.enabled = enabled;
+     const req = new E2eeRequest({
+@@ -312,6 +321,7 @@ export class E2EEManager {
+         new FrameCryptor(
+           this.roomHandle,
+           cryptor.participantIdentity!,
++          cryptor.trackSid!,
+           cryptor.keyIndex!,
+           cryptor.enabled!,
+         ),
