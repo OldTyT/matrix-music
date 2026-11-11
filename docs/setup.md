@@ -219,8 +219,11 @@ SUBSONIC_PASSWORD=<media-server-password>
 
 COMMAND_PREFIX=!
 MAX_ACTIVE_CALLS=4
+LIVEKIT_AUDIO_BITRATE_KBPS=48
 LOG_LEVEL=info
 ```
+
+`LIVEKIT_AUDIO_BITRATE_KBPS` is specified in kilobits per second. It controls the LiveKit Opus publisher cap; the default is `48`. Values up to `2000` are accepted, but Opus/WebRTC commonly limits useful audio quality around `510`, so higher values may not produce a further audible improvement.
 
 Validate the file before starting the long-running service:
 

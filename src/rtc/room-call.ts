@@ -10,7 +10,7 @@ import {
   type KeyProvider,
   type LocalTrackPublication,
 } from "@livekit/rtc-node";
-import { EncryptionType, KeyDerivationFunction } from "@livekit/rtc-ffi-bindings";
+import { AudioEncoding, EncryptionType, KeyDerivationFunction } from "@livekit/rtc-ffi-bindings";
 import { UnsupportedStickyEventsEndpointError } from "matrix-js-sdk";
 import type { Room as MatrixRoom } from "matrix-js-sdk";
 import { MatrixRTCSessionEvent, type MatrixRTCSession } from "matrix-js-sdk/lib/matrixrtc/index.js";
@@ -302,6 +302,9 @@ export class RtcRoomCall {
       publishOptions.source = TrackSource.SOURCE_MICROPHONE;
       publishOptions.dtx = false;
       publishOptions.red = false;
+      const audioEncoding = new AudioEncoding();
+      audioEncoding.maxBitrate = BigInt(this.config.LIVEKIT_AUDIO_BITRATE_KBPS * 1000);
+      publishOptions.audioEncoding = audioEncoding;
       const publication = await withTimeout(
         room.localParticipant.publishTrack(track, publishOptions),
         this.config.RTC_JOIN_TIMEOUT_MS,

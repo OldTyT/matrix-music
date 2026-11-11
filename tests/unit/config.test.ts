@@ -26,6 +26,7 @@ describe("configuration", () => {
     expect(config.MATRIX_REQUIRE_E2EE).toBe(true);
     expect(config.MATRIX_AUTO_ACCEPT_INVITES).toBe(true);
     expect(config.MAX_ACTIVE_CALLS).toBe(4);
+    expect(config.LIVEKIT_AUDIO_BITRATE_KBPS).toBe(48);
     expect(config.DEFAULT_VOLUME_PERCENT).toBe(50);
     expect(config.ALONE_TIMEOUT_MS).toBe(60000);
     expect(config.PLAYBACK_IDLE_TIMEOUT_MS).toBe(600000);
@@ -45,5 +46,7 @@ describe("configuration", () => {
     expect(() => parseConfig({ ...validEnvironment(), SUBSONIC_URL: "https://user:secret@music.example.org" })).toThrow();
     expect(() => parseConfig({ ...validEnvironment(), DEFAULT_VOLUME_PERCENT: "201" })).toThrow();
     expect(() => parseConfig({ ...validEnvironment(), MAX_ACTIVE_CALLS: "0" })).toThrow();
+    expect(parseConfig({ ...validEnvironment(), LIVEKIT_AUDIO_BITRATE_KBPS: "2000" }).LIVEKIT_AUDIO_BITRATE_KBPS).toBe(2000);
+    expect(() => parseConfig({ ...validEnvironment(), LIVEKIT_AUDIO_BITRATE_KBPS: "2001" })).toThrow();
   });
 });

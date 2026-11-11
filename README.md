@@ -77,6 +77,7 @@ SUBSONIC_PASSWORD=SUBSONIC_USER_PASSWORD
 
 COMMAND_PREFIX=!
 MAX_ACTIVE_CALLS=4
+LIVEKIT_AUDIO_BITRATE_KBPS=48
 LOG_LEVEL=info
 ```
 
@@ -140,8 +141,11 @@ All variables already have safe defaults in `.env.example`:
 | `FFMPEG_KILL_TIMEOUT_MS` | `3000` |
 | `RECONNECT_MAX_DELAY_MS` | `30000` |
 | `LIVEKIT_AUDIO_QUEUE_MS` | `100` |
+| `LIVEKIT_AUDIO_BITRATE_KBPS` | `48`, range 12–2000 |
 | `AUTOPLAY_BATCH_SIZE` | `10` |
 | `LOG_LEVEL` | `info` |
+
+`LIVEKIT_AUDIO_BITRATE_KBPS` sets the LiveKit Opus publisher cap in kilobits per second. The default `48` preserves the previous behavior. Values up to `2000` are accepted; in practice Opus/WebRTC commonly caps useful audio quality around 510 kbps, so values above that may not provide a further audible improvement.
 
 ## 4. Build and diagnostics
 

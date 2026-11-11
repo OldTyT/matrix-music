@@ -87,6 +87,7 @@ const schema = z.object({
   FFMPEG_KILL_TIMEOUT_MS: integer(3000, 50, 30000),
   RECONNECT_MAX_DELAY_MS: integer(30000, 1000, 300000),
   LIVEKIT_AUDIO_QUEUE_MS: integer(100, 20, 500),
+  LIVEKIT_AUDIO_BITRATE_KBPS: integer(48, 12, 2000),
   AUTOPLAY_BATCH_SIZE: integer(10, 1, 50),
   DEFAULT_VOLUME_PERCENT: integer(50, 0, 200),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
